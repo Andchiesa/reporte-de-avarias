@@ -7,12 +7,20 @@ import {
   ChevronRight, ChevronLeft, AlertTriangle, 
   TrendingUp, TrendingDown, CheckCircle, Target, 
   Package, AlertOctagon, Box, RotateCw, Shield, User, Users, ArrowRight,
-  ThumbsUp, Award, Activity
+  ThumbsUp, Award, Activity, Crown
 } from 'lucide-react';
 
-// --- DADOS (Edite aqui) ---
-const LEADER_T1 = "Nome do Líder T1";
-const LEADER_T3 = "Nome do Líder T3";
+// --- DADOS REAIS (Cruzamento Realizado) ---
+// T1 (139) ~= Dione (137)
+// T2 (76) ~= Leonardo (79)
+// T3+T4 (148) ~= Marcelo (119) + Lorran (28)
+
+const LEADERS_RANKING = [
+  { name: 'Dione', value: 137, shift: 'T1', color: '#EE4D2D' }, // Maior Ofensor Individual
+  { name: 'Marcelo', value: 119, shift: 'T3', color: '#DC2626' },
+  { name: 'Leonardo', value: 79, shift: 'T2', color: '#10B981' },
+  { name: 'Lorran', value: 28, shift: 'T3/T4', color: '#94A3B8' },
+];
 
 const dataTypes = [
   { name: 'Vidro', value: 185, color: '#EE4D2D' }, 
@@ -31,10 +39,10 @@ const dataWeeks = [
 ];
 
 const dataShifts = [
-  { name: 'T1', value: 139, color: '#EE4D2D', leader: LEADER_T1 },
-  { name: 'T2', value: 76, color: '#10B981', leader: "Líder T2" },
-  { name: 'T3', value: 144, color: '#DC2626', leader: LEADER_T3 },
-  { name: 'T4', value: 4, color: '#94A3B8', leader: "-" },
+  { name: 'T1', value: 139, color: '#EE4D2D', leader: 'Dione' },
+  { name: 'T2', value: 76, color: '#10B981', leader: 'Leonardo' },
+  { name: 'T3', value: 144, color: '#DC2626', leader: 'Marcelo/Lorran' },
+  { name: 'T4', value: 4, color: '#94A3B8', leader: '-' },
 ];
 
 // --- COMPONENTES UI ---
@@ -51,10 +59,7 @@ const SlideCover = () => (
   <div className="flex flex-col items-center justify-center h-full text-center space-y-6 md:space-y-8 animate-fadeIn p-4">
     {/* LOGO ANIMADA */}
     <div className="relative w-full max-w-[200px] md:max-w-md group cursor-pointer">
-      {/* Sombra Dinâmica (Blob) */}
       <div className="absolute inset-0 bg-orange-500 blur-[50px] rounded-full animate-blob opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
-      
-      {/* Imagem da Logo */}
       <img 
         src="https://i.imgur.com/b7GK1hW.png" 
         alt="Shopee Xpress" 
@@ -171,65 +176,64 @@ const SlideTrend = () => (
   </div>
 );
 
-const SlideShiftHighlight = () => (
-  <div className="h-full flex flex-col px-4 md:px-12 py-4 justify-center overflow-y-auto">
-    <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6 md:mb-8 text-center shrink-0">
-      Foco de Gestão: Turnos Ofensores
-    </h2>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full pb-20 md:pb-0 shrink-0">
-      <Card className="border-l-8 border-[#DC2626] relative overflow-hidden">
-        <div className="absolute top-0 right-0 bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded-bl-lg">
-          MAIOR OFENSOR
-        </div>
-        <div className="flex items-center gap-4 mb-4">
-          <div className="bg-red-100 p-3 rounded-full">
-            <Users className="text-red-600" size={32} />
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-slate-800">Turno 3</h3>
-            <div className="text-red-600 font-semibold">144 Avarias</div>
-          </div>
-        </div>
-        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center gap-3">
-            <User className="text-slate-400" size={20}/>
-            <div>
-                <span className="text-xs text-slate-500 block uppercase">Líder do Turno</span>
-                <span className="text-sm font-bold text-slate-700">{LEADER_T3}</span>
-            </div>
-        </div>
-      </Card>
-
-      <Card className="border-l-8 border-[#EE4D2D]">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="bg-orange-100 p-3 rounded-full">
-            <Users className="text-orange-600" size={32} />
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-slate-800">Turno 1</h3>
-            <div className="text-orange-600 font-semibold">139 Avarias</div>
-          </div>
-        </div>
-        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center gap-3">
-            <User className="text-slate-400" size={20}/>
-            <div>
-                <span className="text-xs text-slate-500 block uppercase">Líder do Turno</span>
-                <span className="text-sm font-bold text-slate-700">{LEADER_T1}</span>
-            </div>
-        </div>
-      </Card>
-    </div>
-    
-    <div className="mt-4 md:mt-8 text-center shrink-0">
-        <p className="text-slate-500 text-sm md:text-base max-w-xl mx-auto">
-            Juntos, <strong>T1 e T3</strong> representam <strong>78%</strong> de todas as perdas reais do HUB.
+const SlideLeaderBoard = () => (
+  <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
+    <div className="shrink-0 mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 text-center">
+            Ranking de Ofensores (Líderes)
+        </h2>
+        <p className="text-slate-500 text-center text-sm">
+            Quem teve o maior número de avarias sob sua gestão?
         </p>
+    </div>
+
+    <div className="flex flex-col gap-4 max-w-3xl mx-auto w-full pb-20 md:pb-0">
+        {LEADERS_RANKING.map((leader, index) => (
+            <div 
+                key={index}
+                className={`relative flex items-center p-4 bg-white rounded-xl border-l-8 shadow-sm transition-transform hover:scale-[1.02] ${index === 0 ? 'border-[#EE4D2D] ring-1 ring-orange-100' : 'border-slate-200'}`}
+                style={{ borderLeftColor: leader.color }}
+            >
+                {/* Posição */}
+                <div className="w-12 text-2xl font-bold text-slate-300">#{index + 1}</div>
+                
+                {/* Avatar/Icone */}
+                <div className={`p-3 rounded-full mr-4 ${index === 0 ? 'bg-orange-100 text-[#EE4D2D]' : 'bg-slate-100 text-slate-500'}`}>
+                    {index === 0 ? <Crown size={24} /> : <User size={24} />}
+                </div>
+
+                {/* Dados */}
+                <div className="flex-1">
+                    <h3 className="text-lg font-bold text-slate-800">{leader.name}</h3>
+                    <p className="text-xs text-slate-500 font-semibold uppercase">{leader.shift}</p>
+                </div>
+
+                {/* Valor */}
+                <div className="text-right">
+                    <div className={`text-2xl font-extrabold ${index === 0 ? 'text-[#EE4D2D]' : 'text-slate-700'}`}>
+                        {leader.value}
+                    </div>
+                    <div className="text-xs text-slate-400">avarias</div>
+                </div>
+
+                {index === 0 && (
+                    <div className="absolute -top-3 -right-2 bg-[#EE4D2D] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-md">
+                        MAIOR IMPACTO INDIVIDUAL
+                    </div>
+                )}
+            </div>
+        ))}
+        
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100 text-center">
+            <p className="text-sm text-blue-800">
+                <span className="font-bold">Análise de Rodízio:</span> O Turno 1 (Dione) é o turno com o líder individual que mais gerou avarias (137). O Turno 3 somou mais (144), mas é dividido entre Marcelo e Lorran.
+            </p>
+        </div>
     </div>
   </div>
 );
 
 const SlidePareto = () => {
-    // Cálculo do total para porcentagem
     const totalAvarias = dataTypes.reduce((acc, item) => acc + item.value, 0);
 
     return (
@@ -258,7 +262,6 @@ const SlidePareto = () => {
                     {dataTypes.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
-                    {/* Exibe o valor e a porcentagem ao lado da barra */}
                     <LabelList 
                         dataKey="value" 
                         position="right" 
@@ -277,7 +280,6 @@ const SlidePareto = () => {
                     <h3 className="text-lg font-bold text-red-800">Vidro + Líquido</h3>
                 </div>
                 <div className="text-3xl font-extrabold text-red-700 mb-1">
-                    {/* Cálculo automático da porcentagem dos top 2 */}
                     {(( (dataTypes[0].value + dataTypes[1].value) / totalAvarias ) * 100).toFixed(0)}%
                 </div>
                 <p className="text-xs text-red-800 leading-tight">Do total das perdas.</p>
@@ -382,15 +384,15 @@ const SlideEvolution = () => (
              <ul className="space-y-3">
                  <li className="flex items-center gap-3 p-3 bg-white shadow-sm rounded-lg border-l-4 border-[#EE4D2D]">
                     <AlertOctagon size={20} className="text-[#EE4D2D]" />
-                    <span className="text-sm font-medium text-slate-700">Blitz T1 e T3 (Foco Vidros)</span>
+                    <span className="text-sm font-medium text-slate-700">Blitz com Dione (T1) - Vidros</span>
                  </li>
                  <li className="flex items-center gap-3 p-3 bg-white shadow-sm rounded-lg border-l-4 border-orange-500">
                     <Activity size={20} className="text-orange-500" />
-                    <span className="text-sm font-medium text-slate-700">Investigar Aumento Semanas 4 e 5</span>
+                    <span className="text-sm font-medium text-slate-700">Investigar S4 & S5 (Marcelo/T3)</span>
                  </li>
                  <li className="flex items-center gap-3 p-3 bg-white shadow-sm rounded-lg border-l-4 border-green-500">
                     <Shield size={20} className="text-green-500" />
-                    <span className="text-sm font-medium text-slate-700">Manter alta recuperação</span>
+                    <span className="text-sm font-medium text-slate-700">Manter padrão Leonardo (T2)</span>
                  </li>
              </ul>
 
@@ -412,7 +414,7 @@ export default function App() {
     <SlideCover />,
     <SlideFunnel />,
     <SlideTrend />,
-    <SlideShiftHighlight />,
+    <SlideLeaderBoard />, // Novo slide substituindo o antigo de Turnos
     <SlidePareto />,
     <SlideSuccess />,
     <SlideEvolution />
