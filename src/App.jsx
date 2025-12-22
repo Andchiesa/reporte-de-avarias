@@ -13,9 +13,43 @@ import {
 // ==========================================
 // 🗄️ BANCO DE DADOS (HISTÓRICO MENSAL)
 // ==========================================
-// Dica: Para adicionar um novo mês, basta copiar o bloco anterior e mudar os valores.
 
 const HISTORICO_MENSAL = {
+  "2025-11": {
+    titulo: "Novembro 2025",
+    mes: "Novembro",
+    ano: "2025",
+    kpis: { bruto: 211, recuperado: 137, perda: 74, taxa: "65%" },
+    lideres: [
+      { nome: 'Marcelo', valor: 72, turno: 'T1/T3', cor: '#DC2626' },
+      { nome: 'Leonardo', valor: 70, turno: 'T3', cor: '#10B981' },
+      { nome: 'Dione', valor: 68, turno: 'T1/T2', cor: '#EE4D2D' },
+      { nome: 'Igor Pinto', valor: 1, turno: 'T1', cor: '#94A3B8' },
+    ],
+    semanas: [
+      { name: 'S1', perda: 20, rec: 40 },
+      { name: 'S2', perda: 25, rec: 55 },
+      { name: 'S3', perda: 15, rec: 35 },
+      { name: 'S4', perda: 14, rec: 7 },
+    ],
+    pareto: [
+      { name: 'Emb.', value: 90, cor: '#10B981' },
+      { name: 'Vidro', value: 45, cor: '#EE4D2D' },
+      { name: 'Liquido', value: 35, cor: '#F97316' },
+      { name: 'Sólida', value: 30, cor: '#94A3B8' },
+      { name: 'Outros', value: 11, cor: '#E2E8F0' },
+    ],
+    analise: {
+      tendencia: "Redução de volume na última semana do mês. Eficiência de recuperação subiu 8% vs Outubro.",
+      ofensores: "Liderança de avarias dividida igualmente entre Marcelo, Leonardo e Dione. Marcelo assumiu leve liderança no T1.",
+      paretoAnalysis: "Itens de Embalagem representam o maior volume, porém com 100% de recuperação. Vidro continua sendo o maior descarte.",
+      acao: [
+        { tipo: 'alert', txt: 'Manter foco em Segregação de Vidros', cor: 'red' },
+        { tipo: 'activity', txt: 'Treinamento de Reembalagem (Time Igor)', cor: 'orange' },
+        { tipo: 'shield', txt: 'Meta Dezembro: Manter taxa > 65%', cor: 'green' }
+      ]
+    }
+  },
   "2025-10": {
     titulo: "Outubro 2025",
     mes: "Outubro",
@@ -44,14 +78,14 @@ const HISTORICO_MENSAL = {
     analise: {
       tendencia: "Agravamento nas semanas 4 e 5. Volume de perdas superou a recuperação.",
       ofensores: "Dione (T1) é o maior ofensor individual. Turno 3 tem maior soma total.",
+      paretoAnalysis: "O problema não é embalagem (recuperamos). O problema é quebra de material frágil.",
       acao: [
         { tipo: 'alert', txt: 'Blitz T1 e T3 - Foco Vidros', cor: 'red' },
         { tipo: 'activity', txt: 'Auditoria Semana 4 (Peak)', cor: 'orange' },
         { tipo: 'shield', txt: 'Padronizar processos do T2', cor: 'green' }
       ]
     }
-  },
-  // O bloco de Novembro será inserido aqui assim que você enviar os dados!
+  }
 };
 
 // ==========================================
@@ -110,7 +144,7 @@ const DashboardHome = ({ onSelect }) => {
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                     <div className="bg-[#EE4D2D] h-full" style={{ width: `${(data.kpis.perda / data.kpis.bruto) * 100}%` }}></div>
                   </div>
-                  <p className="text-[10px] text-green-600 font-bold">{data.kpis.taxa} Recuperado com sucesso</p>
+                  <p className="text-[10px] text-green-600 font-bold">{data.kpis.taxa} Eficiência (Recuperados)</p>
                 </div>
 
                 <div className="mt-6 flex items-center justify-between">
@@ -126,7 +160,7 @@ const DashboardHome = ({ onSelect }) => {
              <div className="bg-slate-200 text-slate-400 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                 <Settings size={24} />
              </div>
-             <p className="text-slate-500 font-bold text-sm">Novembro 2025</p>
+             <p className="text-slate-500 font-bold text-sm">Dezembro 2025</p>
              <p className="text-slate-400 text-xs">Aguardando fechamento</p>
           </div>
         </div>
@@ -138,6 +172,14 @@ const DashboardHome = ({ onSelect }) => {
 // --- APRESENTAÇÃO (SISTEMA DE SLIDES) ---
 const PresentationView = ({ data, onBack }) => {
   const [slide, setSlide] = useState(0);
+
+  const getActionIcon = (tipo) => {
+    switch (tipo) {
+      case 'alert': return <AlertOctagon size={32}/>;
+      case 'activity': return <Activity size={32}/>;
+      default: return <Shield size={32}/>;
+    }
+  };
 
   const slides = [
     // Slide 1: Capa
@@ -235,7 +277,7 @@ const PresentationView = ({ data, onBack }) => {
                         <Tooltip cursor={{fill: 'transparent'}} />
                         <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={35}>
                             {data.pareto.map((e, i) => <Cell key={i} fill={e.cor} />)}
-                            <LabelList dataKey="value" position="right" formatter={(v) => `${v} (${((v/data.kpis.perda)*100).toFixed(0)}%)`} style={{fontWeight: 'bold', fontSize: 12}} />
+                            <LabelList dataKey="value" position="right" formatter={(v) => `${v} (${((v/data.kpis.bruto)*100).toFixed(0)}%)`} style={{fontWeight: 'bold', fontSize: 12}} />
                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
@@ -243,7 +285,7 @@ const PresentationView = ({ data, onBack }) => {
             <div className="md:w-1/3 flex flex-col justify-center gap-6">
                 <div className="bg-red-50 p-6 rounded-3xl border border-red-100 text-center">
                     <AlertOctagon size={40} className="text-red-600 mx-auto mb-4" />
-                    <p className="text-4xl font-black text-red-700">78%</p>
+                    <p className="text-4xl font-black text-red-700">{(( (data.pareto[1]?.value || 0) + (data.pareto[2]?.value || 0) ) / data.kpis.perda * 100).toFixed(0)}%</p>
                     <p className="text-xs font-bold text-red-500 uppercase tracking-widest">Vidro + Líquido</p>
                 </div>
                 <p className="text-slate-500 font-medium italic leading-relaxed text-sm">"{data.analise.paretoAnalysis}"</p>
@@ -254,14 +296,14 @@ const PresentationView = ({ data, onBack }) => {
     // Slide 6: Plano de Ação
     <div className="h-full flex flex-col p-6 md:p-12 overflow-y-auto">
         <div className="flex justify-between items-center mb-12">
-            <h2 className="text-3xl font-black text-slate-800 uppercase italic">Plano de Ação <span className="text-orange-600">Novembro</span></h2>
+            <h2 className="text-3xl font-black text-slate-800 uppercase italic">Plano de Ação <span className="text-orange-600">Sequencial</span></h2>
             <ThumbsUp size={40} className="text-green-500" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {data.analise.acao.map((item, idx) => (
                 <div key={idx} className={`p-8 rounded-3xl border-l-8 bg-white shadow-xl flex flex-col items-center text-center gap-4 transition-transform hover:scale-105 ${item.cor === 'red' ? 'border-red-500' : item.cor === 'orange' ? 'border-orange-500' : 'border-green-500'}`}>
                     <div className={`p-4 rounded-full ${item.cor === 'red' ? 'bg-red-50 text-red-600' : item.cor === 'orange' ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600'}`}>
-                        {item.tipo === 'alert' ? <AlertOctagon size={32}/> : item.tipo === 'activity' ? <Activity size={32}/> : <Shield size={32}/>}
+                        {getActionIcon(item.tipo)}
                     </div>
                     <p className="text-lg font-black text-slate-800 leading-tight">{item.txt}</p>
                 </div>
