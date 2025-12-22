@@ -1,118 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  LineChart, Line, Cell, Legend, LabelList
+  Cell, Legend, LabelList
 } from 'recharts';
 import { 
   ChevronRight, ChevronLeft, AlertTriangle, 
   TrendingUp, TrendingDown, CheckCircle, Target, 
-  Package, AlertOctagon, Box, RotateCw, Shield, User, Users, ArrowRight,
-  ThumbsUp, Award, Activity, Crown, Calendar, LayoutGrid, LogOut
+  Package, AlertOctagon, RotateCw, Shield, User, Users, ArrowRight,
+  ThumbsUp, Award, Activity, Crown, Calendar, LogOut, Settings, Database
 } from 'lucide-react';
 
 // ==========================================
-// 🗄️ BANCO DE DADOS (EDITE AQUI MENSALMENTE)
+// 🗄️ BANCO DE DADOS (HISTÓRICO MENSAL)
 // ==========================================
+// Dica: Para adicionar um novo mês, basta copiar o bloco anterior e mudar os valores.
 
-const DATABASE = {
-  // --- DADOS DE OUTUBRO (JÁ PREENCHIDOS) ---
+const HISTORICO_MENSAL = {
   "2025-10": {
-    monthName: "Outubro",
-    year: "2025",
-    leaders: [
-      { name: 'Dione', value: 137, shift: 'T1', color: '#EE4D2D' },
-      { name: 'Marcelo', value: 119, shift: 'T3', color: '#DC2626' },
-      { name: 'Leonardo', value: 79, shift: 'T2', color: '#10B981' },
-      { name: 'Lorran', value: 28, shift: 'T3/T4', color: '#94A3B8' },
+    titulo: "Outubro 2025",
+    mes: "Outubro",
+    ano: "2025",
+    kpis: { bruto: 840, recuperado: 477, perda: 363, taxa: "57%" },
+    lideres: [
+      { nome: 'Dione', valor: 137, turno: 'T1', cor: '#EE4D2D' },
+      { nome: 'Marcelo', valor: 119, turno: 'T3', cor: '#DC2626' },
+      { nome: 'Leonardo', valor: 79, turno: 'T2', cor: '#10B981' },
+      { nome: 'Lorran', valor: 28, turno: 'T3/T4', cor: '#94A3B8' },
     ],
-    types: [
-      { name: 'Vidro', value: 185, color: '#EE4D2D' }, 
-      { name: 'Líquido', value: 99, color: '#F97316' },
-      { name: 'Sólida', value: 36, color: '#94A3B8' },
-      { name: 'Emb.', value: 22, color: '#CBD5E1' }, 
-      { name: 'Outros', value: 21, color: '#E2E8F0' },
+    semanas: [
+      { name: 'S1', perda: 26, rec: 38 },
+      { name: 'S2', perda: 65, rec: 91 },
+      { name: 'S3', perda: 59, rec: 139 },
+      { name: 'S4', perda: 113, rec: 97 },
+      { name: 'S5', perda: 100, rec: 112 },
     ],
-    weeks: [
-      { name: 'S1', perda: 26, recuperados: 38 },
-      { name: 'S2', perda: 65, recuperados: 91 },
-      { name: 'S3', perda: 59, recuperados: 139 },
-      { name: 'S4', perda: 113, recuperados: 97 },
-      { name: 'S5', perda: 100, recuperados: 112 }, 
+    pareto: [
+      { name: 'Vidro', value: 185, cor: '#EE4D2D' },
+      { name: 'Líquido', value: 99, cor: '#F97316' },
+      { name: 'Sólida', value: 36, cor: '#94A3B8' },
+      { name: 'Emb.', value: 22, cor: '#CBD5E1' },
+      { name: 'Outros', value: 21, cor: '#E2E8F0' },
     ],
-    shifts: [
-      { name: 'T1', value: 139, color: '#EE4D2D', leader: 'Dione' },
-      { name: 'T2', value: 76, color: '#10B981', leader: 'Leonardo' },
-      { name: 'T3', value: 144, color: '#DC2626', leader: 'Marcelo/Lorran' },
-      { name: 'T4', value: 4, color: '#94A3B8', leader: '-' },
-    ],
-    kpis: {
-      bruto: 840,
-      recuperado: 477,
-      perda: 363,
-      percentualSalvo: "57%"
-    },
-    conclusions: {
-      trendText: "Nas semanas 4 e 5, o volume de Perdas superou ou igualou os Recuperados.",
-      leaderAnalysis: "O Turno 1 (Dione) é o maior ofensor individual (137). T3 somado é o maior turno.",
-      paretoAnalysis: "O problema não é embalagem (recuperamos). O problema é quebra de material frágil.",
-      planItems: [
-        { icon: 'alert', text: "Blitz T1 e T3 (Foco Vidros)", color: "red" },
-        { icon: 'activity', text: "Investigar Aumento Semanas 4 e 5", color: "orange" },
-        { icon: 'shield', text: "Manter alta recuperação", color: "green" }
+    analise: {
+      tendencia: "Agravamento nas semanas 4 e 5. Volume de perdas superou a recuperação.",
+      ofensores: "Dione (T1) é o maior ofensor individual. Turno 3 tem maior soma total.",
+      acao: [
+        { tipo: 'alert', txt: 'Blitz T1 e T3 - Foco Vidros', cor: 'red' },
+        { tipo: 'activity', txt: 'Auditoria Semana 4 (Peak)', cor: 'orange' },
+        { tipo: 'shield', txt: 'Padronizar processos do T2', cor: 'green' }
       ]
     }
   },
-
-  // --- DADOS DE NOVEMBRO (MODELO PARA PREENCHER) ---
-  "2025-11": {
-    monthName: "Novembro",
-    year: "2025",
-    leaders: [
-      { name: 'Líder A', value: 0, shift: 'T1', color: '#EE4D2D' },
-      { name: 'Líder B', value: 0, shift: 'T3', color: '#DC2626' },
-      { name: 'Líder C', value: 0, shift: 'T2', color: '#10B981' },
-      { name: 'Líder D', value: 0, shift: 'T4', color: '#94A3B8' },
-    ],
-    types: [
-      { name: 'Vidro', value: 0, color: '#EE4D2D' }, 
-      { name: 'Líquido', value: 0, color: '#F97316' },
-      { name: 'Sólida', value: 0, color: '#94A3B8' },
-      { name: 'Emb.', value: 0, color: '#CBD5E1' }, 
-      { name: 'Outros', value: 0, color: '#E2E8F0' },
-    ],
-    weeks: [
-      { name: 'S1', perda: 0, recuperados: 0 },
-      { name: 'S2', perda: 0, recuperados: 0 },
-      { name: 'S3', perda: 0, recuperados: 0 },
-      { name: 'S4', perda: 0, recuperados: 0 },
-    ],
-    shifts: [
-      { name: 'T1', value: 0, color: '#EE4D2D', leader: 'Nome' },
-      { name: 'T2', value: 0, color: '#10B981', leader: 'Nome' },
-      { name: 'T3', value: 0, color: '#DC2626', leader: 'Nome' },
-      { name: 'T4', value: 0, color: '#94A3B8', leader: '-' },
-    ],
-    kpis: {
-      bruto: 0,
-      recuperado: 0,
-      perda: 0,
-      percentualSalvo: "0%"
-    },
-    conclusions: {
-      trendText: "Texto sobre a tendência do mês...",
-      leaderAnalysis: "Texto sobre os líderes...",
-      paretoAnalysis: "Texto sobre os tipos de avaria...",
-      planItems: [
-        { icon: 'alert', text: "Ação 1", color: "red" },
-        { icon: 'activity', text: "Ação 2", color: "orange" },
-        { icon: 'shield', text: "Ação 3", color: "green" }
-      ]
-    }
-  }
+  // O bloco de Novembro será inserido aqui assim que você enviar os dados!
 };
 
 // ==========================================
-// 🧩 COMPONENTES DO SISTEMA
+// 🧩 COMPONENTES DE INTERFACE
 // ==========================================
 
 const Card = ({ children, className = "" }) => (
@@ -121,333 +64,277 @@ const Card = ({ children, className = "" }) => (
   </div>
 );
 
-// --- TELA DE DASHBOARD (MENU) ---
-const DashboardMenu = ({ onSelectMonth }) => {
-  const availableMonths = Object.keys(DATABASE).sort().reverse(); // Mais recente primeiro
+// --- TELA INICIAL: PORTAL DE SELEÇÃO ---
+const DashboardHome = ({ onSelect }) => {
+  const mesesDisponiveis = Object.keys(HISTORICO_MENSAL).sort().reverse();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 animate-fadeIn">
-      <div className="max-w-4xl w-full">
-        <div className="text-center mb-12 space-y-4">
-          <div className="relative inline-block group">
-             <div className="absolute inset-0 bg-orange-500 blur-[30px] rounded-full opacity-20 group-hover:opacity-40 transition-opacity"></div>
-             <img src="https://i.imgur.com/b7GK1hW.png" alt="Shopee" className="h-20 relative z-10" />
+    <div className="min-h-screen bg-slate-50 p-6 md:p-12 animate-fadeIn">
+      <div className="max-w-5xl mx-auto">
+        <header className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 text-center md:text-left">
+          <div className="space-y-2">
+            <img src="https://i.imgur.com/b7GK1hW.png" alt="Shopee" className="h-12 mx-auto md:mx-0" />
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight">Portal de Resultados <span className="text-[#EE4D2D]">Inventory</span></h1>
+            <p className="text-slate-500 font-medium">Selecione o relatório mensal para apresentação</p>
           </div>
-          <h1 className="text-4xl font-bold text-slate-800">Portal de Resultados</h1>
-          <p className="text-slate-500">Selecione o período para visualizar a apresentação</p>
-        </div>
+          <div className="flex gap-4">
+             <div className="bg-orange-50 text-orange-600 px-4 py-2 rounded-full text-sm font-bold border border-orange-100 flex items-center gap-2">
+                <Database size={16} /> {mesesDisponiveis.length} Relatórios Salvos
+             </div>
+          </div>
+        </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {availableMonths.map(key => {
-            const item = DATABASE[key];
-            const isFuture = item.kpis.bruto === 0; // Se estiver zerado, consideramos não preenchido
-
+          {mesesDisponiveis.map(key => {
+            const data = HISTORICO_MENSAL[key];
             return (
-              <button
+              <button 
                 key={key}
-                onClick={() => onSelectMonth(key)}
-                className={`group relative overflow-hidden p-6 rounded-2xl border transition-all duration-300 text-left ${
-                   isFuture 
-                   ? 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed' 
-                   : 'bg-white border-slate-200 hover:border-orange-500 hover:shadow-xl cursor-pointer'
-                }`}
+                onClick={() => onSelect(data)}
+                className="group bg-white p-6 rounded-3xl border border-slate-200 hover:border-orange-500 hover:shadow-2xl transition-all duration-500 text-left relative overflow-hidden"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`p-3 rounded-lg ${isFuture ? 'bg-slate-200' : 'bg-orange-50 text-orange-600'}`}>
-                    <Calendar size={24} />
-                  </div>
-                  {!isFuture && <ChevronRight className="text-slate-300 group-hover:text-orange-500 transition-colors" />}
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
+                    <Calendar size={80} />
                 </div>
+                <div className="bg-orange-50 text-orange-600 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Calendar size={24} />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800">{data.mes}</h3>
+                <p className="text-slate-400 font-bold mb-6">{data.ano}</p>
                 
-                <h3 className="text-2xl font-bold text-slate-800 mb-1">{item.monthName}</h3>
-                <p className="text-slate-500 font-medium">{item.year}</p>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <span>Perda Real</span>
+                    <span className="text-slate-800">{data.kpis.perda} itens</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div className="bg-[#EE4D2D] h-full" style={{ width: `${(data.kpis.perda / data.kpis.bruto) * 100}%` }}></div>
+                  </div>
+                  <p className="text-[10px] text-green-600 font-bold">{data.kpis.taxa} Recuperado com sucesso</p>
+                </div>
 
-                {!isFuture && (
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex gap-4 text-xs text-slate-400">
-                    <span>{item.kpis.perda} Perdas</span>
-                    <span>•</span>
-                    <span>{item.kpis.percentualSalvo} Recup.</span>
-                  </div>
-                )}
-                
-                {isFuture && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-[1px]">
-                    <span className="bg-slate-200 text-slate-500 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                      Em Breve
-                    </span>
-                  </div>
-                )}
+                <div className="mt-6 flex items-center justify-between">
+                  <span className="text-orange-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity">Abrir Apresentação</span>
+                  <ChevronRight className="text-slate-300 group-hover:text-orange-500" />
+                </div>
               </button>
             )
           })}
+          
+          {/* Card de Novo Mês (Placeholder) */}
+          <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-6 flex flex-col items-center justify-center text-center opacity-60">
+             <div className="bg-slate-200 text-slate-400 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                <Settings size={24} />
+             </div>
+             <p className="text-slate-500 font-bold text-sm">Novembro 2025</p>
+             <p className="text-slate-400 text-xs">Aguardando fechamento</p>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-// --- APRESENTAÇÃO (SLIDES) ---
-const Presentation = ({ data, onBack }) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  // Mapeamento dos ícones para o plano de ação
-  const getIcon = (type) => {
-    if (type === 'alert') return <AlertOctagon size={20} className="text-[#EE4D2D]" />;
-    if (type === 'activity') return <Activity size={20} className="text-orange-500" />;
-    return <Shield size={20} className="text-green-500" />;
-  };
+// --- APRESENTAÇÃO (SISTEMA DE SLIDES) ---
+const PresentationView = ({ data, onBack }) => {
+  const [slide, setSlide] = useState(0);
 
   const slides = [
-    // 1. CAPA
-    <div className="flex flex-col items-center justify-center h-full text-center space-y-6 md:space-y-8 animate-fadeIn p-4">
-      <div className="relative w-full max-w-[200px] md:max-w-md group cursor-pointer">
-        <div className="absolute inset-0 bg-orange-500 blur-[50px] rounded-full animate-blob opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
-        <img src="https://i.imgur.com/b7GK1hW.png" alt="Shopee Xpress" className="relative z-10 mx-auto h-24 md:h-40 object-contain drop-shadow-2xl transform transition-transform duration-700 ease-in-out group-hover:scale-105" />
+    // Slide 1: Capa
+    <div className="h-full flex flex-col items-center justify-center text-center p-6 animate-fadeIn">
+      <div className="relative mb-8">
+        <div className="absolute inset-0 bg-orange-500 blur-[60px] opacity-20 animate-blob"></div>
+        <img src="https://i.imgur.com/b7GK1hW.png" alt="Logo" className="relative h-24 md:h-40 object-contain" />
       </div>
-      <div className="space-y-2 z-10">
-        <h1 className="text-3xl md:text-6xl font-extrabold text-slate-800 tracking-tight">
-          Relatório de <span className="text-[#EE4D2D]">Avarias</span>
-        </h1>
-        <div className="h-1.5 w-16 md:w-24 bg-[#EE4D2D] mx-auto rounded-full"></div>
-        <h2 className="text-lg md:text-2xl text-slate-500 font-medium">{data.monthName} {data.year}</h2>
-      </div>
-      <div className="mt-8 bg-white/90 backdrop-blur-sm border border-slate-200 px-6 py-3 rounded-full shadow-sm animate-pulse-slow">
-        <p className="text-slate-600 font-semibold text-sm md:text-base">Foco: Ocorrências HUB</p>
-      </div>
+      <h1 className="text-4xl md:text-7xl font-black text-slate-800">Relatório de <span className="text-[#EE4D2D]">Avarias</span></h1>
+      <p className="text-xl md:text-3xl text-slate-400 font-medium mt-4">{data.mes} de {data.ano}</p>
+      <div className="mt-12 bg-white px-8 py-3 rounded-full shadow-sm border border-slate-100 text-slate-500 font-bold uppercase tracking-widest text-xs">Inventory Team • HUB Operations</div>
     </div>,
 
-    // 2. FUNIL
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
-      <div className="shrink-0 mb-6 md:mb-12">
-        <h2 className="text-2xl md:text-4xl font-bold text-slate-800 border-l-8 border-[#EE4D2D] pl-4">Eficiência Operacional</h2>
-      </div>
-      <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-center md:justify-center h-auto md:h-full pb-20 md:pb-0">
-        <Card className="w-full md:w-1/3 flex flex-row md:flex-col justify-between items-center min-h-[120px] md:h-64 border-t-4 border-slate-300">
-          <div className="text-left md:text-center">
-            <div className="flex items-center md:justify-center gap-2 text-slate-500 mb-1">
-              <Package size={20} /><span className="font-bold text-xs uppercase tracking-wider">Total Bruto</span>
-            </div>
-            <div className="text-3xl md:text-5xl font-bold text-slate-400">{data.kpis.bruto}</div>
-          </div>
-          <div className="text-right md:text-center text-xs text-slate-400">Itens segregados.</div>
+    // Slide 2: Eficiência
+    <div className="h-full flex flex-col p-6 md:p-12 overflow-y-auto">
+      <h2 className="text-3xl font-black text-slate-800 mb-12 border-l-8 border-[#EE4D2D] pl-6 uppercase">Eficiência Operacional</h2>
+      <div className="flex flex-col md:flex-row gap-6 items-center justify-center flex-1 pb-10">
+        <Card className="w-full md:w-1/3 text-center border-t-4 border-slate-300 h-64 flex flex-col justify-center">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Total Ocorrências</p>
+            <p className="text-5xl font-black text-slate-400">{data.kpis.bruto}</p>
         </Card>
-        <ArrowRight className="hidden md:block text-slate-300" size={48} /><TrendingDown className="md:hidden text-slate-300 my-2" size={32} />
-        <Card className="w-full md:w-1/3 flex flex-row md:flex-col justify-between items-center min-h-[120px] md:h-72 border-t-4 border-green-500 bg-green-50">
-          <div className="text-left md:text-center">
-            <div className="flex items-center md:justify-center gap-2 text-green-700 mb-1">
-              <RotateCw size={20} /><span className="font-bold text-xs uppercase tracking-wider">Recuperados</span>
-            </div>
-            <div className="text-4xl md:text-6xl font-bold text-green-600">{data.kpis.recuperado}</div>
-            <div className="mt-1 md:mt-2 inline-block bg-green-200 text-green-800 px-2 py-0.5 rounded text-xs font-bold">{data.kpis.percentualSalvo} Salvos</div>
-          </div>
-          <div className="text-right md:text-center text-xs text-green-700">Reintegrados.</div>
+        <ArrowRight className="hidden md:block text-slate-200" size={40} />
+        <Card className="w-full md:w-1/3 text-center border-t-4 border-green-500 h-72 flex flex-col justify-center bg-green-50/30">
+            <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-2">Recuperados</p>
+            <p className="text-6xl font-black text-green-600">{data.kpis.recuperado}</p>
+            <p className="mt-4 inline-block bg-green-100 text-green-700 px-4 py-1 rounded-full text-xs font-black">{data.kpis.taxa} Eficiência</p>
         </Card>
-        <ArrowRight className="hidden md:block text-slate-300" size={48} /><TrendingDown className="md:hidden text-slate-300 my-2" size={32} />
-        <Card className="w-full md:w-1/3 flex flex-row md:flex-col justify-between items-center min-h-[120px] md:h-80 border-t-8 border-[#EE4D2D] shadow-xl">
-          <div className="text-left md:text-center">
-            <div className="flex items-center md:justify-center gap-2 text-[#EE4D2D] mb-1">
-              <Target size={20} /><span className="font-bold text-xs uppercase tracking-wider">Perda Real</span>
-            </div>
-            <div className="text-5xl md:text-8xl font-extrabold text-slate-800">{data.kpis.perda}</div>
-          </div>
-          <div className="text-right md:text-center bg-orange-50 p-2 rounded md:w-full"><p className="text-xs text-orange-800 font-medium">Itens descartados.</p></div>
+        <ArrowRight className="hidden md:block text-slate-200" size={40} />
+        <Card className="w-full md:w-1/3 text-center border-t-8 border-[#EE4D2D] h-80 flex flex-col justify-center shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5"><Target size={100} /></div>
+            <p className="text-xs font-bold text-[#EE4D2D] uppercase tracking-widest mb-2">Perda Real</p>
+            <p className="text-7xl font-black text-slate-800">{data.kpis.perda}</p>
         </Card>
       </div>
     </div>,
 
-    // 3. TENDÊNCIA
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
-      <div className="mb-4 shrink-0">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Evolução Semanal</h2>
-        <p className="text-sm md:text-base text-slate-500">Comparativo: Perda vs Recuperação</p>
-      </div>
-      <div className="w-full h-[300px] bg-white rounded-2xl p-2 md:p-4 shadow-sm border border-slate-100 shrink-0">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data.weeks} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-            <Tooltip contentStyle={{borderRadius: '12px'}} />
-            <Legend verticalAlign="top" height={36} iconType="circle"/>
-            <Bar name="Recuperados" dataKey="recuperados" stackId="a" fill="#10B981" radius={[0, 0, 4, 4]} barSize={40} />
-            <Bar name="Perda Real" dataKey="perda" stackId="a" fill="#EE4D2D" radius={[4, 4, 0, 0]} barSize={40} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-100 flex items-center gap-3 shrink-0">
-        <AlertTriangle className="text-orange-600 shrink-0" size={24} />
-        <p className="text-xs md:text-sm text-orange-800"><strong>Análise:</strong> {data.conclusions.trendText}</p>
-      </div>
-    </div>,
-
-    // 4. LÍDERES
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
-      <div className="shrink-0 mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 text-center">Ranking de Ofensores</h2>
-        <p className="text-slate-500 text-center text-sm">Gestão de Turno</p>
-      </div>
-      <div className="flex flex-col gap-4 max-w-3xl mx-auto w-full pb-20 md:pb-0">
-        {data.leaders.map((leader, index) => (
-          <div key={index} className={`relative flex items-center p-4 bg-white rounded-xl border-l-8 shadow-sm ${index === 0 ? 'border-[#EE4D2D] ring-1 ring-orange-100' : 'border-slate-200'}`} style={{ borderLeftColor: leader.color }}>
-            <div className="w-12 text-2xl font-bold text-slate-300">#{index + 1}</div>
-            <div className={`p-3 rounded-full mr-4 ${index === 0 ? 'bg-orange-100 text-[#EE4D2D]' : 'bg-slate-100 text-slate-500'}`}>
-              {index === 0 ? <Crown size={24} /> : <User size={24} />}
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-slate-800">{leader.name}</h3>
-              <p className="text-xs text-slate-500 font-semibold uppercase">{leader.shift}</p>
-            </div>
-            <div className="text-right">
-              <div className={`text-2xl font-extrabold ${index === 0 ? 'text-[#EE4D2D]' : 'text-slate-700'}`}>{leader.value}</div>
-              <div className="text-xs text-slate-400">avarias</div>
-            </div>
-          </div>
-        ))}
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100 text-center">
-          <p className="text-sm text-blue-800">{data.conclusions.leaderAnalysis}</p>
+    // Slide 3: Tendência Semanal
+    <div className="h-full flex flex-col p-6 md:p-12">
+        <h2 className="text-3xl font-black text-slate-800 mb-2 uppercase">Evolução Semanal</h2>
+        <p className="text-slate-400 font-bold mb-8 italic">Comparativo entre itens recuperados e descarte real</p>
+        <div className="flex-1 bg-white rounded-3xl p-4 border border-slate-100 shadow-sm">
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data.semanas} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)'}} />
+                    <Legend verticalAlign="top" height={40} iconType="circle" />
+                    <Bar name="Recuperados" dataKey="rec" stackId="a" fill="#10B981" radius={[0, 0, 4, 4]} barSize={40} />
+                    <Bar name="Perda Real" dataKey="perda" stackId="a" fill="#EE4D2D" radius={[6, 6, 0, 0]} barSize={40} />
+                </BarChart>
+            </ResponsiveContainer>
         </div>
-      </div>
+        <div className="mt-6 flex items-center gap-4 bg-orange-50 p-4 rounded-2xl border border-orange-100">
+            <AlertTriangle className="text-orange-600 shrink-0" size={28} />
+            <p className="text-sm font-bold text-orange-800">{data.analise.tendencia}</p>
+        </div>
     </div>,
 
-    // 5. PARETO (TIPOS)
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
-      <div className="mb-4 shrink-0">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-800">O que está quebrando?</h2>
-        <p className="text-sm text-slate-500">Pareto de Perdas Reais</p>
-      </div>
-      <div className="flex flex-col md:flex-row gap-6 pb-20 md:pb-0 shrink-0">
-        <div className="w-full h-[300px] bg-white rounded-xl p-2 shadow-sm border border-slate-100">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart layout="vertical" data={data.types} margin={{ top: 5, right: 60, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-              <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" width={50} tick={{fill: '#475569', fontSize: 12, fontWeight: 600}} axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: 'transparent'}} contentStyle={{borderRadius: '8px'}} />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={30}>
-                {data.types.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                <LabelList dataKey="value" position="right" style={{ fill: '#475569', fontSize: 12, fontWeight: 600 }} formatter={(val) => `${val} (${((val / data.kpis.perda) * 100).toFixed(0)}%)`} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="w-full md:w-1/3 flex flex-col justify-center gap-4">
-          <Card className="bg-red-50 border-l-4 border-red-500 p-4">
-            <div className="flex items-center gap-3 mb-2"><AlertOctagon className="text-red-600" size={24} /><h3 className="text-lg font-bold text-red-800">Vidro + Líquido</h3></div>
-            <div className="text-3xl font-extrabold text-red-700 mb-1">{(( (data.types[0].value + data.types[1].value) / data.kpis.perda ) * 100).toFixed(0)}%</div>
-            <p className="text-xs text-red-800 leading-tight">Do total das perdas.</p>
-          </Card>
-          <p className="text-xs md:text-sm text-slate-500 leading-relaxed">{data.conclusions.paretoAnalysis}</p>
-        </div>
-      </div>
-    </div>,
-
-    // 6. SUCESSO
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 justify-center text-center overflow-y-auto">
-      <div className="mb-8 shrink-0">
-        <div className="inline-flex items-center justify-center p-4 bg-green-100 rounded-full mb-4"><ThumbsUp size={48} className="text-green-600" /></div>
-        <h2 className="text-3xl md:text-5xl font-bold text-green-700 mb-2">Está Funcionando!</h2>
-        <p className="text-lg md:text-xl text-slate-500">Avarias de "Embalagem" não viram perda.</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full pb-20 md:pb-0 shrink-0">
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-none shadow-xl">
-          <div className="text-6xl font-extrabold mb-2">{data.kpis.recuperado}</div>
-          <div className="text-green-100 font-medium text-lg uppercase tracking-widest">Pacotes Salvos</div>
-        </Card>
-        <Card className="flex flex-col justify-center items-start text-left pl-8">
-          <div className="flex items-center gap-3 mb-4"><CheckCircle className="text-green-600" size={28} /><span className="text-slate-700 font-bold text-lg">Triagem Eficiente</span></div>
-          <div className="flex items-center gap-3 mb-4"><CheckCircle className="text-green-600" size={28} /><span className="text-slate-700 font-bold text-lg">Reembalagem Ágil</span></div>
-          <div className="flex items-center gap-3"><CheckCircle className="text-green-600" size={28} /><span className="text-slate-700 font-bold text-lg">Foco no Cliente</span></div>
-        </Card>
-      </div>
-    </div>,
-
-    // 7. CONCLUSÃO
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
-      <div className="shrink-0 mb-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Plano de Ação</h2>
-        <p className="text-slate-500">Próximos Passos</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 h-full pb-20 md:pb-0 shrink-0">
-        <div className="space-y-4">
-          <h3 className="font-bold text-slate-700 uppercase tracking-wider border-b pb-2">O Cenário</h3>
-          <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border border-slate-100">
-            <div><p className="text-xs text-slate-500 uppercase">Volume Processado</p><p className="text-xl font-bold text-slate-800">Crescimento</p></div>
-            <TrendingUp className="text-green-500" size={28} />
-          </div>
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 mt-4">
-            <div className="flex items-start gap-3"><Award className="text-blue-600 mt-1" size={24} /><div><h4 className="font-bold text-blue-800">Eficiência</h4><p className="text-sm text-blue-700 mt-1">Foco total em reduzir o descarte.</p></div></div>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <h3 className="font-bold text-slate-700 uppercase tracking-wider border-b pb-2">Ações Prioritárias</h3>
-          <ul className="space-y-3">
-            {data.conclusions.planItems.map((item, idx) => (
-              <li key={idx} className={`flex items-center gap-3 p-3 bg-white shadow-sm rounded-lg border-l-4 ${item.color === 'red' ? 'border-[#EE4D2D]' : item.color === 'orange' ? 'border-orange-500' : 'border-green-500'}`}>
-                {getIcon(item.icon)}
-                <span className="text-sm font-medium text-slate-700">{item.text}</span>
-              </li>
+    // Slide 4: Líderes
+    <div className="h-full flex flex-col p-6 md:p-12 overflow-y-auto">
+        <h2 className="text-3xl font-black text-slate-800 mb-8 text-center uppercase tracking-tighter">Ranking de Ofensores (Gestão)</h2>
+        <div className="max-w-3xl mx-auto w-full space-y-4 pb-12">
+            {data.lideres.map((l, idx) => (
+                <div key={idx} className="flex items-center bg-white p-5 rounded-2xl shadow-sm border-l-8 transition-transform hover:scale-[1.02]" style={{borderColor: l.cor}}>
+                    <div className="text-2xl font-black text-slate-200 mr-6 w-8 italic">#{idx+1}</div>
+                    <div className={`p-3 rounded-full mr-4 ${idx === 0 ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-400'}`}>
+                        {idx === 0 ? <Crown size={24} /> : <User size={24} />}
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-xl font-black text-slate-800 leading-tight">{l.nome}</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{l.turno}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-3xl font-black text-slate-800">{l.valor}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Avarias</p>
+                    </div>
+                </div>
             ))}
-          </ul>
-          <div className="mt-6 text-center">
-            <div className="text-2xl md:text-4xl font-bold text-slate-800">Vamos com tudo!</div>
-            <div className="text-sm text-slate-400 mt-1">Inventory Team</div>
-          </div>
+            <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 text-center text-sm font-bold text-blue-800 mt-6 italic">
+               "{data.analise.ofensores}"
+            </div>
         </div>
-      </div>
+    </div>,
+
+    // Slide 5: Pareto
+    <div className="h-full flex flex-col p-6 md:p-12 overflow-y-auto">
+        <h2 className="text-3xl font-black text-slate-800 mb-8 uppercase border-l-8 border-orange-500 pl-6">O que estamos perdendo?</h2>
+        <div className="flex flex-col md:flex-row gap-8 flex-1">
+            <div className="flex-1 h-[350px] bg-white rounded-3xl p-6 border border-slate-50 shadow-inner">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart layout="vertical" data={data.pareto} margin={{ top: 5, right: 60, left: 0, bottom: 5 }}>
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="name" type="category" width={60} axisLine={false} tickLine={false} tick={{fontWeight: 'bold', fontSize: 12}} />
+                        <Tooltip cursor={{fill: 'transparent'}} />
+                        <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={35}>
+                            {data.pareto.map((e, i) => <Cell key={i} fill={e.cor} />)}
+                            <LabelList dataKey="value" position="right" formatter={(v) => `${v} (${((v/data.kpis.perda)*100).toFixed(0)}%)`} style={{fontWeight: 'bold', fontSize: 12}} />
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+            <div className="md:w-1/3 flex flex-col justify-center gap-6">
+                <div className="bg-red-50 p-6 rounded-3xl border border-red-100 text-center">
+                    <AlertOctagon size={40} className="text-red-600 mx-auto mb-4" />
+                    <p className="text-4xl font-black text-red-700">78%</p>
+                    <p className="text-xs font-bold text-red-500 uppercase tracking-widest">Vidro + Líquido</p>
+                </div>
+                <p className="text-slate-500 font-medium italic leading-relaxed text-sm">"{data.analise.paretoAnalysis}"</p>
+            </div>
+        </div>
+    </div>,
+
+    // Slide 6: Plano de Ação
+    <div className="h-full flex flex-col p-6 md:p-12 overflow-y-auto">
+        <div className="flex justify-between items-center mb-12">
+            <h2 className="text-3xl font-black text-slate-800 uppercase italic">Plano de Ação <span className="text-orange-600">Novembro</span></h2>
+            <ThumbsUp size={40} className="text-green-500" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {data.analise.acao.map((item, idx) => (
+                <div key={idx} className={`p-8 rounded-3xl border-l-8 bg-white shadow-xl flex flex-col items-center text-center gap-4 transition-transform hover:scale-105 ${item.cor === 'red' ? 'border-red-500' : item.cor === 'orange' ? 'border-orange-500' : 'border-green-500'}`}>
+                    <div className={`p-4 rounded-full ${item.cor === 'red' ? 'bg-red-50 text-red-600' : item.cor === 'orange' ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600'}`}>
+                        {item.tipo === 'alert' ? <AlertOctagon size={32}/> : item.tipo === 'activity' ? <Activity size={32}/> : <Shield size={32}/>}
+                    </div>
+                    <p className="text-lg font-black text-slate-800 leading-tight">{item.txt}</p>
+                </div>
+            ))}
+        </div>
+        <div className="mt-auto pt-12 text-center">
+            <p className="text-4xl font-black text-slate-800 tracking-tighter uppercase italic">Vamos com tudo!</p>
+            <p className="text-slate-400 font-bold mt-2">Inventory Team Shopee Xpress</p>
+        </div>
     </div>
   ];
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-100 font-sans text-slate-800 p-0 md:p-4">
-      <div className="w-full max-w-5xl bg-white md:rounded-2xl shadow-2xl overflow-hidden flex flex-col h-screen md:h-[600px] md:min-h-[600px] relative">
-        <div className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 md:px-8 shrink-0 z-20">
-          <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-orange-500 transition-colors">
-            <LogOut size={16} />
-            <span className="text-xs font-bold uppercase tracking-widest">Voltar ao Menu</span>
-          </button>
-          <div className="text-[10px] md:text-xs font-medium text-slate-400">{currentSlide + 1} / {slides.length}</div>
+    <div className="h-screen w-full bg-slate-100 flex items-center justify-center p-0 md:p-6 font-sans">
+      <div className="w-full max-w-6xl h-full md:h-[650px] bg-white md:rounded-[40px] shadow-2xl flex flex-col overflow-hidden relative border-4 border-white">
+        
+        {/* Barra de Topo */}
+        <div className="h-14 flex items-center justify-between px-8 border-b border-slate-50 shrink-0 z-20">
+            <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-orange-600 font-bold text-xs uppercase transition-colors">
+                <LogOut size={16} /> Voltar ao Portal
+            </button>
+            <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{slide + 1} / {slides.length}</div>
         </div>
-        <div className="flex-1 relative bg-slate-50/50 overflow-y-auto md:overflow-hidden">{slides[currentSlide]}</div>
-        <div className="h-16 bg-white border-t border-slate-100 flex items-center justify-between px-4 md:px-8 shrink-0 z-20 pb-safe">
-          <button onClick={() => currentSlide > 0 && setCurrentSlide(c => c - 1)} disabled={currentSlide === 0} className="flex items-center gap-2 text-slate-600 disabled:opacity-30 px-4 py-2 rounded-lg hover:bg-slate-100 transition-colors"><ChevronLeft size={24} /><span className="hidden md:inline text-sm font-medium">Anterior</span></button>
-          <div className="flex gap-1">{slides.map((_, idx) => <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${currentSlide === idx ? 'w-4 md:w-8 bg-[#EE4D2D]' : 'w-1.5 md:w-2 bg-slate-200'}`} />)}</div>
-          <button onClick={() => currentSlide < slides.length - 1 && setCurrentSlide(c => c + 1)} disabled={currentSlide === slides.length - 1} className="flex items-center gap-2 bg-[#EE4D2D] text-white px-4 py-2 rounded-lg hover:bg-[#d03e1f] shadow-md disabled:opacity-50 disabled:shadow-none transition-colors"><span className="hidden md:inline text-sm font-medium">Próximo</span><ChevronRight size={24} /></button>
+
+        {/* Área do Slide */}
+        <div className="flex-1 relative bg-slate-50/30 overflow-hidden">
+            {slides[slide]}
+        </div>
+
+        {/* Controles de Navegação */}
+        <div className="h-20 flex items-center justify-between px-8 bg-white/80 backdrop-blur-md shrink-0 border-t border-slate-50 z-20 pb-safe">
+            <button 
+                onClick={() => slide > 0 && setSlide(s => s - 1)}
+                disabled={slide === 0}
+                className="p-3 rounded-2xl hover:bg-slate-100 text-slate-400 disabled:opacity-10 transition-all"
+            >
+                <ChevronLeft size={32} />
+            </button>
+
+            <div className="flex gap-2">
+                {slides.map((_, i) => (
+                    <div key={i} className={`h-2 rounded-full transition-all duration-500 ${slide === i ? 'w-10 bg-orange-600' : 'w-2 bg-slate-200'}`} />
+                ))}
+            </div>
+
+            <button 
+                onClick={() => slide < slides.length - 1 && setSlide(s => s + 1)}
+                disabled={slide === slides.length - 1}
+                className="bg-orange-600 p-3 rounded-2xl text-white shadow-lg shadow-orange-200 hover:bg-orange-700 disabled:opacity-10 transition-all"
+            >
+                <ChevronRight size={32} />
+            </button>
         </div>
       </div>
+
       <style>{`
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fadeIn { animation: fadeIn 0.8s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .animate-fadeIn { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
-        @keyframes blob { 0% { transform: translate(0px, 0px) scale(1); } 33% { transform: translate(10px, -10px) scale(1.1); } 66% { transform: translate(-10px, 10px) scale(0.9); } 100% { transform: translate(0px, 0px) scale(1); } }
-        .animate-blob { animation: blob 7s infinite; }
-        @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
-        .animate-pulse-slow { animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes blob { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1) rotate(5deg); } }
+        .animate-blob { animation: blob 10s infinite alternate ease-in-out; }
       `}</style>
     </div>
   );
 };
 
-// --- APP PRINCIPAL (CONTROLE) ---
+// --- CONTROLLER PRINCIPAL ---
 export default function App() {
-  const [view, setView] = useState('dashboard'); // 'dashboard' ou 'presentation'
-  const [selectedData, setSelectedData] = useState(null);
+  const [activeData, setActiveData] = useState(null);
 
-  const handleSelectMonth = (monthKey) => {
-    // Só abre se tiver dados (kpis.bruto > 0)
-    if (DATABASE[monthKey].kpis.bruto > 0) {
-      setSelectedData(DATABASE[monthKey]);
-      setView('presentation');
-    }
-  };
-
-  const handleBack = () => {
-    setView('dashboard');
-    setSelectedData(null);
-  };
-
-  if (view === 'dashboard') {
-    return <DashboardMenu onSelectMonth={handleSelectMonth} />;
+  if (activeData) {
+    return <PresentationView data={activeData} onBack={() => setActiveData(null)} />;
   }
 
-  return <Presentation data={selectedData} onBack={handleBack} />;
+  return <DashboardHome onSelect={setActiveData} />;
 }
