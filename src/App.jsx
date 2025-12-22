@@ -1,453 +1,495 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  LineChart, Line, Cell, Legend, LabelList
+  LineChart, Line, Cell, PieChart, Pie 
 } from 'recharts';
 import { 
-  ChevronRight, ChevronLeft, AlertTriangle, 
+  ChevronRight, ChevronLeft, Box, AlertTriangle, 
   TrendingUp, TrendingDown, CheckCircle, Target, 
-  Package, AlertOctagon, Box, RotateCw, Shield, User, Users, ArrowRight,
-  ThumbsUp, Award, Activity, Crown, Calendar, LayoutGrid, LogOut
+  ArrowRight, Package, AlertOctagon
 } from 'lucide-react';
 
-// ==========================================
-// 🗄️ BANCO DE DADOS (EDITE AQUI MENSALMENTE)
-// ==========================================
+// --- DADOS ---
+const dataTypes = [
+  { name: 'Vidro', value: 185, color: '#EE4D2D' }, // Shopee Orange
+  { name: 'Líquido', value: 99, color: '#F97316' },
+  { name: 'Sólida', value: 36, color: '#94A3B8' },
+  { name: 'Embalagem', value: 22, color: '#CBD5E1' },
+  { name: 'Outros', value: 21, color: '#E2E8F0' },
+];
 
-const DATABASE = {
-  // --- DADOS DE OUTUBRO (JÁ PREENCHIDOS) ---
-  "2025-10": {
-    monthName: "Outubro",
-    year: "2025",
-    leaders: [
-      { name: 'Dione', value: 137, shift: 'T1', color: '#EE4D2D' },
-      { name: 'Marcelo', value: 119, shift: 'T3', color: '#DC2626' },
-      { name: 'Leonardo', value: 79, shift: 'T2', color: '#10B981' },
-      { name: 'Lorran', value: 28, shift: 'T3/T4', color: '#94A3B8' },
-    ],
-    types: [
-      { name: 'Vidro', value: 185, color: '#EE4D2D' }, 
-      { name: 'Líquido', value: 99, color: '#F97316' },
-      { name: 'Sólida', value: 36, color: '#94A3B8' },
-      { name: 'Emb.', value: 22, color: '#CBD5E1' }, 
-      { name: 'Outros', value: 21, color: '#E2E8F0' },
-    ],
-    weeks: [
-      { name: 'S1', perda: 26, recuperados: 38 },
-      { name: 'S2', perda: 65, recuperados: 91 },
-      { name: 'S3', perda: 59, recuperados: 139 },
-      { name: 'S4', perda: 113, recuperados: 97 },
-      { name: 'S5', perda: 100, recuperados: 112 }, 
-    ],
-    shifts: [
-      { name: 'T1', value: 139, color: '#EE4D2D', leader: 'Dione' },
-      { name: 'T2', value: 76, color: '#10B981', leader: 'Leonardo' },
-      { name: 'T3', value: 144, color: '#DC2626', leader: 'Marcelo/Lorran' },
-      { name: 'T4', value: 4, color: '#94A3B8', leader: '-' },
-    ],
-    kpis: {
-      bruto: 840,
-      recuperado: 477,
-      perda: 363,
-      percentualSalvo: "57%"
-    },
-    conclusions: {
-      trendText: "Nas semanas 4 e 5, o volume de Perdas superou ou igualou os Recuperados.",
-      leaderAnalysis: "O Turno 1 (Dione) é o maior ofensor individual (137). T3 somado é o maior turno.",
-      paretoAnalysis: "O problema não é embalagem (recuperamos). O problema é quebra de material frágil.",
-      planItems: [
-        { icon: 'alert', text: "Blitz T1 e T3 (Foco Vidros)", color: "red" },
-        { icon: 'activity', text: "Investigar Aumento Semanas 4 e 5", color: "orange" },
-        { icon: 'shield', text: "Manter alta recuperação", color: "green" }
-      ]
-    }
-  },
+const dataWeeks = [
+  { name: 'Sem 1', avarias: 26 },
+  { name: 'Sem 2', avarias: 65 },
+  { name: 'Sem 3', avarias: 59 },
+  { name: 'Sem 4', avarias: 113 }, // Spike
+  { name: 'Sem 5', avarias: 100 }, // Spike
+];
 
-  // --- DADOS DE NOVEMBRO (MODELO PARA PREENCHER) ---
-  "2025-11": {
-    monthName: "Novembro",
-    year: "2025",
-    leaders: [
-      { name: 'Líder A', value: 0, shift: 'T1', color: '#EE4D2D' },
-      { name: 'Líder B', value: 0, shift: 'T3', color: '#DC2626' },
-      { name: 'Líder C', value: 0, shift: 'T2', color: '#10B981' },
-      { name: 'Líder D', value: 0, shift: 'T4', color: '#94A3B8' },
-    ],
-    types: [
-      { name: 'Vidro', value: 0, color: '#EE4D2D' }, 
-      { name: 'Líquido', value: 0, color: '#F97316' },
-      { name: 'Sólida', value: 0, color: '#94A3B8' },
-      { name: 'Emb.', value: 0, color: '#CBD5E1' }, 
-      { name: 'Outros', value: 0, color: '#E2E8F0' },
-    ],
-    weeks: [
-      { name: 'S1', perda: 0, recuperados: 0 },
-      { name: 'S2', perda: 0, recuperados: 0 },
-      { name: 'S3', perda: 0, recuperados: 0 },
-      { name: 'S4', perda: 0, recuperados: 0 },
-    ],
-    shifts: [
-      { name: 'T1', value: 0, color: '#EE4D2D', leader: 'Nome' },
-      { name: 'T2', value: 0, color: '#10B981', leader: 'Nome' },
-      { name: 'T3', value: 0, color: '#DC2626', leader: 'Nome' },
-      { name: 'T4', value: 0, color: '#94A3B8', leader: '-' },
-    ],
-    kpis: {
-      bruto: 0,
-      recuperado: 0,
-      perda: 0,
-      percentualSalvo: "0%"
-    },
-    conclusions: {
-      trendText: "Texto sobre a tendência do mês...",
-      leaderAnalysis: "Texto sobre os líderes...",
-      paretoAnalysis: "Texto sobre os tipos de avaria...",
-      planItems: [
-        { icon: 'alert', text: "Ação 1", color: "red" },
-        { icon: 'activity', text: "Ação 2", color: "orange" },
-        { icon: 'shield', text: "Ação 3", color: "green" }
-      ]
-    }
-  }
-};
+const dataShifts = [
+  { name: 'Turno 1', value: 139, color: '#EE4D2D' },
+  { name: 'Turno 2', value: 76, color: '#10B981' }, // Green for good
+  { name: 'Turno 3', value: 144, color: '#DC2626' }, // Red for bad
+  { name: 'Turno 4', value: 4, color: '#94A3B8' },
+];
 
-// ==========================================
-// 🧩 COMPONENTES DO SISTEMA
-// ==========================================
+// --- COMPONENTES UI ---
 
 const Card = ({ children, className = "" }) => (
-  <div className={`bg-white rounded-xl shadow-sm border border-slate-100 p-4 md:p-6 ${className}`}>
+  <div className={`bg-white rounded-xl shadow-lg p-6 ${className}`}>
     {children}
   </div>
 );
 
-// --- TELA DE DASHBOARD (MENU) ---
-const DashboardMenu = ({ onSelectMonth }) => {
-  const availableMonths = Object.keys(DATABASE).sort().reverse(); // Mais recente primeiro
-
+const Badge = ({ children, color = "orange" }) => {
+  const colors = {
+    orange: "bg-orange-100 text-orange-800",
+    red: "bg-red-100 text-red-800",
+    green: "bg-green-100 text-green-800",
+    gray: "bg-gray-100 text-gray-800",
+  };
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 animate-fadeIn">
-      <div className="max-w-4xl w-full">
-        <div className="text-center mb-12 space-y-4">
-          <div className="relative inline-block group">
-             <div className="absolute inset-0 bg-orange-500 blur-[30px] rounded-full opacity-20 group-hover:opacity-40 transition-opacity"></div>
-             <img src="https://i.imgur.com/b7GK1hW.png" alt="Shopee" className="h-20 relative z-10" />
-          </div>
-          <h1 className="text-4xl font-bold text-slate-800">Portal de Resultados</h1>
-          <p className="text-slate-500">Selecione o período para visualizar a apresentação</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {availableMonths.map(key => {
-            const item = DATABASE[key];
-            const isFuture = item.kpis.bruto === 0; // Se estiver zerado, consideramos não preenchido
-
-            return (
-              <button
-                key={key}
-                onClick={() => onSelectMonth(key)}
-                className={`group relative overflow-hidden p-6 rounded-2xl border transition-all duration-300 text-left ${
-                   isFuture 
-                   ? 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed' 
-                   : 'bg-white border-slate-200 hover:border-orange-500 hover:shadow-xl cursor-pointer'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`p-3 rounded-lg ${isFuture ? 'bg-slate-200' : 'bg-orange-50 text-orange-600'}`}>
-                    <Calendar size={24} />
-                  </div>
-                  {!isFuture && <ChevronRight className="text-slate-300 group-hover:text-orange-500 transition-colors" />}
-                </div>
-                
-                <h3 className="text-2xl font-bold text-slate-800 mb-1">{item.monthName}</h3>
-                <p className="text-slate-500 font-medium">{item.year}</p>
-
-                {!isFuture && (
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex gap-4 text-xs text-slate-400">
-                    <span>{item.kpis.perda} Perdas</span>
-                    <span>•</span>
-                    <span>{item.kpis.percentualSalvo} Recup.</span>
-                  </div>
-                )}
-                
-                {isFuture && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-[1px]">
-                    <span className="bg-slate-200 text-slate-500 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                      Em Breve
-                    </span>
-                  </div>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    </div>
+    <span className={`px-3 py-1 rounded-full text-sm font-bold ${colors[color]}`}>
+      {children}
+    </span>
   );
 };
 
-// --- APRESENTAÇÃO (SLIDES) ---
-const Presentation = ({ data, onBack }) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+// --- SLIDES ---
 
-  // Mapeamento dos ícones para o plano de ação
-  const getIcon = (type) => {
-    if (type === 'alert') return <AlertOctagon size={20} className="text-[#EE4D2D]" />;
-    if (type === 'activity') return <Activity size={20} className="text-orange-500" />;
-    return <Shield size={20} className="text-green-500" />;
-  };
+const SlideCover = () => (
+  <div className="flex flex-col items-center justify-center h-full text-center space-y-8 animate-fadeIn">
+    <div className="relative w-full max-w-md">
+      <div className="absolute inset-0 bg-orange-500 blur-[60px] opacity-20 rounded-full"></div>
+      <img 
+        src="https://i.imgur.com/b7GK1hW.png" 
+        alt="Shopee Xpress Inventory Team" 
+        className="relative z-10 mx-auto h-32 object-contain drop-shadow-xl"
+      />
+    </div>
+    
+    <div className="space-y-4 z-10">
+      <h1 className="text-6xl font-extrabold text-slate-800 tracking-tight">
+        Análise de <span className="text-[#EE4D2D]">Avarias</span>
+      </h1>
+      <div className="h-1 w-24 bg-[#EE4D2D] mx-auto rounded-full"></div>
+      <h2 className="text-2xl text-slate-500 font-medium">
+        Fechamento Outubro 2025
+      </h2>
+    </div>
 
-  const slides = [
-    // 1. CAPA
-    <div className="flex flex-col items-center justify-center h-full text-center space-y-6 md:space-y-8 animate-fadeIn p-4">
-      <div className="relative w-full max-w-[200px] md:max-w-md group cursor-pointer">
-        <div className="absolute inset-0 bg-orange-500 blur-[50px] rounded-full animate-blob opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
-        <img src="https://i.imgur.com/b7GK1hW.png" alt="Shopee Xpress" className="relative z-10 mx-auto h-24 md:h-40 object-contain drop-shadow-2xl transform transition-transform duration-700 ease-in-out group-hover:scale-105" />
-      </div>
-      <div className="space-y-2 z-10">
-        <h1 className="text-3xl md:text-6xl font-extrabold text-slate-800 tracking-tight">
-          Relatório de <span className="text-[#EE4D2D]">Avarias</span>
-        </h1>
-        <div className="h-1.5 w-16 md:w-24 bg-[#EE4D2D] mx-auto rounded-full"></div>
-        <h2 className="text-lg md:text-2xl text-slate-500 font-medium">{data.monthName} {data.year}</h2>
-      </div>
-      <div className="mt-8 bg-white/90 backdrop-blur-sm border border-slate-200 px-6 py-3 rounded-full shadow-sm animate-pulse-slow">
-        <p className="text-slate-600 font-semibold text-sm md:text-base">Foco: Ocorrências HUB</p>
-      </div>
-    </div>,
+    <div className="mt-12 bg-white/80 backdrop-blur-sm border border-slate-200 px-8 py-4 rounded-2xl shadow-sm">
+      <p className="text-slate-600 font-semibold">Foco: Ocorrências "Recebido pelo HUB"</p>
+    </div>
+  </div>
+);
 
-    // 2. FUNIL
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
-      <div className="shrink-0 mb-6 md:mb-12">
-        <h2 className="text-2xl md:text-4xl font-bold text-slate-800 border-l-8 border-[#EE4D2D] pl-4">Eficiência Operacional</h2>
-      </div>
-      <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-center md:justify-center h-auto md:h-full pb-20 md:pb-0">
-        <Card className="w-full md:w-1/3 flex flex-row md:flex-col justify-between items-center min-h-[120px] md:h-64 border-t-4 border-slate-300">
-          <div className="text-left md:text-center">
-            <div className="flex items-center md:justify-center gap-2 text-slate-500 mb-1">
-              <Package size={20} /><span className="font-bold text-xs uppercase tracking-wider">Total Bruto</span>
-            </div>
-            <div className="text-3xl md:text-5xl font-bold text-slate-400">{data.kpis.bruto}</div>
+const SlideExecutiveSummary = () => (
+  <div className="h-full flex flex-col justify-center px-12 animate-slideUp">
+    <h2 className="text-4xl font-bold text-slate-800 mb-12 border-l-8 border-[#EE4D2D] pl-6">
+      O Cenário Real: O Funil de Perdas
+    </h2>
+
+    <div className="grid grid-cols-3 gap-8 items-center">
+      {/* Total Processed */}
+      <Card className="h-64 flex flex-col justify-between border-t-4 border-slate-300 opacity-60">
+        <div>
+          <div className="flex items-center gap-2 text-slate-500 mb-2">
+            <Package size={24} />
+            <span className="font-bold uppercase tracking-wider">Ocorrências Brutas</span>
           </div>
-          <div className="text-right md:text-center text-xs text-slate-400">Itens segregados.</div>
-        </Card>
-        <ArrowRight className="hidden md:block text-slate-300" size={48} /><TrendingDown className="md:hidden text-slate-300 my-2" size={32} />
-        <Card className="w-full md:w-1/3 flex flex-row md:flex-col justify-between items-center min-h-[120px] md:h-72 border-t-4 border-green-500 bg-green-50">
-          <div className="text-left md:text-center">
-            <div className="flex items-center md:justify-center gap-2 text-green-700 mb-1">
-              <RotateCw size={20} /><span className="font-bold text-xs uppercase tracking-wider">Recuperados</span>
-            </div>
-            <div className="text-4xl md:text-6xl font-bold text-green-600">{data.kpis.recuperado}</div>
-            <div className="mt-1 md:mt-2 inline-block bg-green-200 text-green-800 px-2 py-0.5 rounded text-xs font-bold">{data.kpis.percentualSalvo} Salvos</div>
-          </div>
-          <div className="text-right md:text-center text-xs text-green-700">Reintegrados.</div>
-        </Card>
-        <ArrowRight className="hidden md:block text-slate-300" size={48} /><TrendingDown className="md:hidden text-slate-300 my-2" size={32} />
-        <Card className="w-full md:w-1/3 flex flex-row md:flex-col justify-between items-center min-h-[120px] md:h-80 border-t-8 border-[#EE4D2D] shadow-xl">
-          <div className="text-left md:text-center">
-            <div className="flex items-center md:justify-center gap-2 text-[#EE4D2D] mb-1">
-              <Target size={20} /><span className="font-bold text-xs uppercase tracking-wider">Perda Real</span>
-            </div>
-            <div className="text-5xl md:text-8xl font-extrabold text-slate-800">{data.kpis.perda}</div>
-          </div>
-          <div className="text-right md:text-center bg-orange-50 p-2 rounded md:w-full"><p className="text-xs text-orange-800 font-medium">Itens descartados.</p></div>
-        </Card>
-      </div>
-    </div>,
+          <div className="text-5xl font-bold text-slate-400">~903</div>
+        </div>
+        <p className="text-sm text-slate-400">Total de registros iniciais no sistema.</p>
+      </Card>
 
-    // 3. TENDÊNCIA
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
-      <div className="mb-4 shrink-0">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Evolução Semanal</h2>
-        <p className="text-sm md:text-base text-slate-500">Comparativo: Perda vs Recuperação</p>
+      {/* Arrow */}
+      <div className="flex justify-center text-slate-300">
+        <ArrowRight size={48} strokeWidth={3} />
       </div>
-      <div className="w-full h-[300px] bg-white rounded-2xl p-2 md:p-4 shadow-sm border border-slate-100 shrink-0">
+
+      {/* The Big Number */}
+      <Card className="h-80 flex flex-col justify-between border-t-8 border-[#EE4D2D] relative transform scale-110 z-10 shadow-2xl">
+        <div className="absolute top-4 right-4">
+          <AlertTriangle className="text-[#EE4D2D]" size={32} />
+        </div>
+        <div>
+          <div className="flex items-center gap-2 text-[#EE4D2D] mb-2">
+            <Target size={24} />
+            <span className="font-bold uppercase tracking-wider">Perda Real (HUB)</span>
+          </div>
+          <div className="text-8xl font-extrabold text-slate-800">363</div>
+        </div>
+        <div className="bg-orange-50 p-3 rounded-lg border border-orange-100">
+          <p className="text-sm text-orange-800 font-medium">
+            Este é o número que impacta o P&L. Itens não recuperados, foco da análise.
+          </p>
+        </div>
+      </Card>
+    </div>
+  </div>
+);
+
+const SlideTypeAnalysis = () => (
+  <div className="h-full px-12 pt-8 pb-4 flex flex-col animate-slideUp">
+    <div className="mb-6">
+      <h2 className="text-3xl font-bold text-slate-800">Onde estamos perdendo?</h2>
+      <p className="text-slate-500">Análise de Pareto por Tipo de Avaria</p>
+    </div>
+
+    <div className="flex flex-row h-full gap-8">
+      <div className="flex-1 h-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data.weeks} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-            <Tooltip contentStyle={{borderRadius: '12px'}} />
-            <Legend verticalAlign="top" height={36} iconType="circle"/>
-            <Bar name="Recuperados" dataKey="recuperados" stackId="a" fill="#10B981" radius={[0, 0, 4, 4]} barSize={40} />
-            <Bar name="Perda Real" dataKey="perda" stackId="a" fill="#EE4D2D" radius={[4, 4, 0, 0]} barSize={40} />
+          <BarChart layout="vertical" data={dataTypes} margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+            <XAxis type="number" hide />
+            <YAxis 
+              type="category" 
+              dataKey="name" 
+              width={100} 
+              tick={{fill: '#475569', fontSize: 14, fontWeight: 600}} 
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip 
+              cursor={{fill: 'transparent'}}
+              contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+            />
+            <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={40}>
+              {dataTypes.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-100 flex items-center gap-3 shrink-0">
-        <AlertTriangle className="text-orange-600 shrink-0" size={24} />
-        <p className="text-xs md:text-sm text-orange-800"><strong>Análise:</strong> {data.conclusions.trendText}</p>
-      </div>
-    </div>,
 
-    // 4. LÍDERES
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
-      <div className="shrink-0 mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 text-center">Ranking de Ofensores</h2>
-        <p className="text-slate-500 text-center text-sm">Gestão de Turno</p>
-      </div>
-      <div className="flex flex-col gap-4 max-w-3xl mx-auto w-full pb-20 md:pb-0">
-        {data.leaders.map((leader, index) => (
-          <div key={index} className={`relative flex items-center p-4 bg-white rounded-xl border-l-8 shadow-sm ${index === 0 ? 'border-[#EE4D2D] ring-1 ring-orange-100' : 'border-slate-200'}`} style={{ borderLeftColor: leader.color }}>
-            <div className="w-12 text-2xl font-bold text-slate-300">#{index + 1}</div>
-            <div className={`p-3 rounded-full mr-4 ${index === 0 ? 'bg-orange-100 text-[#EE4D2D]' : 'bg-slate-100 text-slate-500'}`}>
-              {index === 0 ? <Crown size={24} /> : <User size={24} />}
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-slate-800">{leader.name}</h3>
-              <p className="text-xs text-slate-500 font-semibold uppercase">{leader.shift}</p>
-            </div>
-            <div className="text-right">
-              <div className={`text-2xl font-extrabold ${index === 0 ? 'text-[#EE4D2D]' : 'text-slate-700'}`}>{leader.value}</div>
-              <div className="text-xs text-slate-400">avarias</div>
+      <div className="w-1/3 flex flex-col justify-center space-y-6">
+        <Card className="bg-red-50 border-l-4 border-red-500">
+          <div className="flex items-start gap-3">
+            <AlertOctagon className="text-red-600 mt-1" />
+            <div>
+              <h3 className="text-xl font-bold text-red-800">Vidro + Líquido</h3>
+              <p className="text-red-600 text-3xl font-extrabold mt-2">78%</p>
+              <p className="text-sm text-red-700 mt-1">Do total das perdas.</p>
             </div>
           </div>
-        ))}
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100 text-center">
-          <p className="text-sm text-blue-800">{data.conclusions.leaderAnalysis}</p>
-        </div>
-      </div>
-    </div>,
-
-    // 5. PARETO (TIPOS)
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
-      <div className="mb-4 shrink-0">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-800">O que está quebrando?</h2>
-        <p className="text-sm text-slate-500">Pareto de Perdas Reais</p>
-      </div>
-      <div className="flex flex-col md:flex-row gap-6 pb-20 md:pb-0 shrink-0">
-        <div className="w-full h-[300px] bg-white rounded-xl p-2 shadow-sm border border-slate-100">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart layout="vertical" data={data.types} margin={{ top: 5, right: 60, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-              <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" width={50} tick={{fill: '#475569', fontSize: 12, fontWeight: 600}} axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: 'transparent'}} contentStyle={{borderRadius: '8px'}} />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={30}>
-                {data.types.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                <LabelList dataKey="value" position="right" style={{ fill: '#475569', fontSize: 12, fontWeight: 600 }} formatter={(val) => `${val} (${((val / data.kpis.perda) * 100).toFixed(0)}%)`} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="w-full md:w-1/3 flex flex-col justify-center gap-4">
-          <Card className="bg-red-50 border-l-4 border-red-500 p-4">
-            <div className="flex items-center gap-3 mb-2"><AlertOctagon className="text-red-600" size={24} /><h3 className="text-lg font-bold text-red-800">Vidro + Líquido</h3></div>
-            <div className="text-3xl font-extrabold text-red-700 mb-1">{(( (data.types[0].value + data.types[1].value) / data.kpis.perda ) * 100).toFixed(0)}%</div>
-            <p className="text-xs text-red-800 leading-tight">Do total das perdas.</p>
-          </Card>
-          <p className="text-xs md:text-sm text-slate-500 leading-relaxed">{data.conclusions.paretoAnalysis}</p>
-        </div>
-      </div>
-    </div>,
-
-    // 6. SUCESSO
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 justify-center text-center overflow-y-auto">
-      <div className="mb-8 shrink-0">
-        <div className="inline-flex items-center justify-center p-4 bg-green-100 rounded-full mb-4"><ThumbsUp size={48} className="text-green-600" /></div>
-        <h2 className="text-3xl md:text-5xl font-bold text-green-700 mb-2">Está Funcionando!</h2>
-        <p className="text-lg md:text-xl text-slate-500">Avarias de "Embalagem" não viram perda.</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full pb-20 md:pb-0 shrink-0">
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-none shadow-xl">
-          <div className="text-6xl font-extrabold mb-2">{data.kpis.recuperado}</div>
-          <div className="text-green-100 font-medium text-lg uppercase tracking-widest">Pacotes Salvos</div>
         </Card>
-        <Card className="flex flex-col justify-center items-start text-left pl-8">
-          <div className="flex items-center gap-3 mb-4"><CheckCircle className="text-green-600" size={28} /><span className="text-slate-700 font-bold text-lg">Triagem Eficiente</span></div>
-          <div className="flex items-center gap-3 mb-4"><CheckCircle className="text-green-600" size={28} /><span className="text-slate-700 font-bold text-lg">Reembalagem Ágil</span></div>
-          <div className="flex items-center gap-3"><CheckCircle className="text-green-600" size={28} /><span className="text-slate-700 font-bold text-lg">Foco no Cliente</span></div>
-        </Card>
-      </div>
-    </div>,
-
-    // 7. CONCLUSÃO
-    <div className="h-full flex flex-col px-4 md:px-12 py-4 overflow-y-auto">
-      <div className="shrink-0 mb-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Plano de Ação</h2>
-        <p className="text-slate-500">Próximos Passos</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 h-full pb-20 md:pb-0 shrink-0">
-        <div className="space-y-4">
-          <h3 className="font-bold text-slate-700 uppercase tracking-wider border-b pb-2">O Cenário</h3>
-          <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border border-slate-100">
-            <div><p className="text-xs text-slate-500 uppercase">Volume Processado</p><p className="text-xl font-bold text-slate-800">Crescimento</p></div>
-            <TrendingUp className="text-green-500" size={28} />
-          </div>
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 mt-4">
-            <div className="flex items-start gap-3"><Award className="text-blue-600 mt-1" size={24} /><div><h4 className="font-bold text-blue-800">Eficiência</h4><p className="text-sm text-blue-700 mt-1">Foco total em reduzir o descarte.</p></div></div>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <h3 className="font-bold text-slate-700 uppercase tracking-wider border-b pb-2">Ações Prioritárias</h3>
-          <ul className="space-y-3">
-            {data.conclusions.planItems.map((item, idx) => (
-              <li key={idx} className={`flex items-center gap-3 p-3 bg-white shadow-sm rounded-lg border-l-4 ${item.color === 'red' ? 'border-[#EE4D2D]' : item.color === 'orange' ? 'border-orange-500' : 'border-green-500'}`}>
-                {getIcon(item.icon)}
-                <span className="text-sm font-medium text-slate-700">{item.text}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-6 text-center">
-            <div className="text-2xl md:text-4xl font-bold text-slate-800">Vamos com tudo!</div>
-            <div className="text-sm text-slate-400 mt-1">Inventory Team</div>
-          </div>
+        
+        <div className="prose text-slate-600">
+          <p>
+            Diferente da percepção operacional de "Embalagem" (que recuperamos), 
+            o prejuízo financeiro vem da <strong>quebra de vidro</strong> e 
+            <strong> vazamento de líquidos</strong>.
+          </p>
         </div>
       </div>
     </div>
-  ];
+  </div>
+);
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-100 font-sans text-slate-800 p-0 md:p-4">
-      <div className="w-full max-w-5xl bg-white md:rounded-2xl shadow-2xl overflow-hidden flex flex-col h-screen md:h-[600px] md:min-h-[600px] relative">
-        <div className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 md:px-8 shrink-0 z-20">
-          <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-orange-500 transition-colors">
-            <LogOut size={16} />
-            <span className="text-xs font-bold uppercase tracking-widest">Voltar ao Menu</span>
-          </button>
-          <div className="text-[10px] md:text-xs font-medium text-slate-400">{currentSlide + 1} / {slides.length}</div>
-        </div>
-        <div className="flex-1 relative bg-slate-50/50 overflow-y-auto md:overflow-hidden">{slides[currentSlide]}</div>
-        <div className="h-16 bg-white border-t border-slate-100 flex items-center justify-between px-4 md:px-8 shrink-0 z-20 pb-safe">
-          <button onClick={() => currentSlide > 0 && setCurrentSlide(c => c - 1)} disabled={currentSlide === 0} className="flex items-center gap-2 text-slate-600 disabled:opacity-30 px-4 py-2 rounded-lg hover:bg-slate-100 transition-colors"><ChevronLeft size={24} /><span className="hidden md:inline text-sm font-medium">Anterior</span></button>
-          <div className="flex gap-1">{slides.map((_, idx) => <div key={idx} className={`h-1.5 rounded-full transition-all duration-300 ${currentSlide === idx ? 'w-4 md:w-8 bg-[#EE4D2D]' : 'w-1.5 md:w-2 bg-slate-200'}`} />)}</div>
-          <button onClick={() => currentSlide < slides.length - 1 && setCurrentSlide(c => c + 1)} disabled={currentSlide === slides.length - 1} className="flex items-center gap-2 bg-[#EE4D2D] text-white px-4 py-2 rounded-lg hover:bg-[#d03e1f] shadow-md disabled:opacity-50 disabled:shadow-none transition-colors"><span className="hidden md:inline text-sm font-medium">Próximo</span><ChevronRight size={24} /></button>
+const SlideTrendAnalysis = () => (
+  <div className="h-full px-12 pt-8 pb-4 flex flex-col animate-slideUp">
+    <div className="mb-6 flex justify-between items-end">
+      <div>
+        <h2 className="text-3xl font-bold text-slate-800">Evolução Semanal</h2>
+        <p className="text-slate-500">Tendência de agravamento no final do mês</p>
+      </div>
+      <Badge color="red">Atenção Semanas 4 & 5</Badge>
+    </div>
+
+    <div className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={dataWeeks} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', marginTop: 10}} padding={{left: 20, right: 20}} />
+          <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+          <Tooltip 
+             contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+          />
+          <Line 
+            type="monotone" 
+            dataKey="avarias" 
+            stroke="#EE4D2D" 
+            strokeWidth={5} 
+            dot={{ r: 6, fill: '#EE4D2D', strokeWidth: 2, stroke: '#fff' }}
+            activeDot={{ r: 8 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+
+    <div className="mt-6 grid grid-cols-2 gap-6">
+      <div className="flex items-center gap-4 p-4 rounded-lg bg-green-50 border border-green-100 opacity-50">
+        <TrendingDown className="text-green-600" size={32} />
+        <div>
+          <div className="text-sm text-green-800 font-bold">Semanas 1-3</div>
+          <div className="text-xs text-green-700">Média: 50 avarias/sem</div>
         </div>
       </div>
+      <div className="flex items-center gap-4 p-4 rounded-lg bg-red-50 border border-red-100 shadow-sm">
+        <TrendingUp className="text-red-600" size={32} />
+        <div>
+          <div className="text-sm text-red-800 font-bold">Semanas 4-5 (Crítico)</div>
+          <div className="text-xs text-red-700">Média: 106 avarias/sem (+112%)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SlideShiftAnalysis = () => (
+  <div className="h-full px-12 pt-8 pb-4 flex flex-col animate-slideUp">
+    <div className="mb-4">
+      <h2 className="text-3xl font-bold text-slate-800">Quem é o Ofensor?</h2>
+      <p className="text-slate-500">Análise de Responsabilidade por Turno</p>
+    </div>
+
+    <div className="flex items-center justify-between h-full gap-12">
+      {/* Chart Area */}
+      <div className="w-1/2 h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={dataShifts} barSize={60}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#475569', fontWeight: 600}} />
+            <Tooltip cursor={{fill: 'transparent'}} />
+            <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+              {dataShifts.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Insight Area */}
+      <div className="w-1/2 space-y-6">
+        <div className="bg-white p-6 rounded-xl shadow-md border-l-8 border-[#DC2626]">
+          <h3 className="text-lg font-bold text-slate-800 mb-2">Ponto de Atenção: T1 e T3</h3>
+          <p className="text-slate-600 mb-4">
+            Somados, Turno 1 e Turno 3 representam <strong>78%</strong> de todas as avarias do mês.
+          </p>
+          <div className="flex gap-4 text-sm">
+            <span className="bg-red-100 text-red-800 px-2 py-1 rounded">T3: 144</span>
+            <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded">T1: 139</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-md border-l-8 border-[#10B981]">
+          <h3 className="text-lg font-bold text-slate-800 mb-2">Benchmark: T2</h3>
+          <p className="text-slate-600">
+            O Turno 2 apresentou apenas <strong>76 avarias</strong>. Precisamos entender qual processo diferente eles estão executando.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SlideStrategy = () => (
+  <div className="h-full px-12 pt-8 pb-4 flex flex-col justify-center animate-slideUp">
+    <h2 className="text-3xl font-bold text-slate-800 mb-8 text-center">
+      A Fórmula do Problema
+    </h2>
+    
+    <div className="flex items-center justify-center gap-4 mb-12">
+      <Card className="w-64 h-64 flex flex-col items-center justify-center text-center bg-slate-50 border-2 border-slate-200">
+        <div className="bg-slate-200 p-4 rounded-full mb-4">
+          <Package size={40} className="text-slate-600" />
+        </div>
+        <h3 className="text-xl font-bold text-slate-700">Vidro</h3>
+        <p className="text-slate-500 text-sm mt-2">Material Frágil</p>
+      </Card>
+
+      <span className="text-4xl text-slate-400 font-light">+</span>
+
+      <Card className="w-64 h-64 flex flex-col items-center justify-center text-center bg-red-50 border-2 border-red-100">
+        <div className="bg-red-200 p-4 rounded-full mb-4">
+          <AlertTriangle size={40} className="text-red-600" />
+        </div>
+        <h3 className="text-xl font-bold text-red-700">Turnos 1 & 3</h3>
+        <p className="text-red-500 text-sm mt-2">Manuseio/Processo</p>
+      </Card>
+
+      <span className="text-4xl text-slate-400 font-light">=</span>
+
+      <Card className="w-64 h-64 flex flex-col items-center justify-center text-center bg-[#EE4D2D] text-white shadow-orange-500/30 shadow-xl transform scale-105">
+        <div className="bg-white/20 p-4 rounded-full mb-4">
+          <TrendingUp size={40} className="text-white" />
+        </div>
+        <h3 className="text-2xl font-bold">363 Avarias</h3>
+        <p className="text-orange-100 text-sm mt-2">Perda Financeira</p>
+      </Card>
+    </div>
+    
+    <p className="text-center text-slate-500 max-w-2xl mx-auto">
+      A combinação de itens de vidro com os processos atuais do T1 e T3, especialmente no fim do mês, é a raiz de 78% das nossas perdas.
+    </p>
+  </div>
+);
+
+const SlideActionPlan = () => (
+  <div className="h-full px-12 pt-8 pb-4 flex flex-col animate-slideUp">
+    <div className="mb-8">
+      <h2 className="text-3xl font-bold text-slate-800">Plano de Ação: Novembro</h2>
+      <p className="text-slate-500">Meta: Reduzir perda real para &lt;200</p>
+    </div>
+
+    <div className="grid grid-cols-2 gap-6">
+      {[
+        {
+          title: "Blitz do Vidro (Foco T1 & T3)",
+          desc: "Acompanhamento visual e auditivo (som de quebra) durante o manuseio de cargas frágeis nos turnos ofensores.",
+          icon: <AlertOctagon size={24} />,
+          color: "text-red-600 bg-red-50"
+        },
+        {
+          title: "Investigação S4 & S5",
+          desc: "Análise retroativa: O que mudou no processo ou equipe na virada da Semana 3 para a 4?",
+          icon: <TrendingUp size={24} />,
+          color: "text-orange-600 bg-orange-50"
+        },
+        {
+          title: "Benchmark T2",
+          desc: "Mapear processos do Turno 2 para entender por que eles quebram menos e replicar no T1 e T3.",
+          icon: <CheckCircle size={24} />,
+          color: "text-green-600 bg-green-50"
+        },
+        {
+          title: "Segregação na Entrada",
+          desc: "Reforçar a separação física imediata de Líquidos e Vidros para evitar contaminação de cargas secas.",
+          icon: <Box size={24} />,
+          color: "text-blue-600 bg-blue-50"
+        }
+      ].map((item, idx) => (
+        <Card key={idx} className="flex gap-4 items-start hover:shadow-xl transition-shadow duration-300 border border-slate-100">
+          <div className={`p-3 rounded-lg ${item.color}`}>
+            {item.icon}
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-800 text-lg">{item.title}</h3>
+            <p className="text-slate-500 mt-1 leading-relaxed">{item.desc}</p>
+          </div>
+        </Card>
+      ))}
+    </div>
+  </div>
+);
+
+// --- MAIN APP ---
+
+export default function ShopeePresentation() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = [
+    <SlideCover />,
+    <SlideExecutiveSummary />,
+    <SlideTypeAnalysis />,
+    <SlideTrendAnalysis />,
+    <SlideShiftAnalysis />,
+    <SlideStrategy />,
+    <SlideActionPlan />
+  ];
+
+  const nextSlide = () => {
+    if (currentSlide < slides.length - 1) setCurrentSlide(curr => curr + 1);
+  };
+
+  const prevSlide = () => {
+    if (currentSlide > 0) setCurrentSlide(curr => curr - 1);
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowRight') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentSlide]);
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-slate-100 p-4 md:p-8 font-sans text-slate-800">
+      {/* Main Container - Aspect Ratio 16:9 for slides */}
+      <div className="w-full max-w-6xl aspect-video bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col relative border border-slate-200">
+        
+        {/* Header / Top Bar */}
+        <div className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-8 z-20">
+          <div className="flex items-center gap-3">
+            <img src="https://i.imgur.com/b7GK1hW.png" alt="Logo" className="h-8 w-auto object-contain" />
+            <div className="h-4 w-[1px] bg-slate-300"></div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Confidencial</span>
+          </div>
+          <div className="text-xs font-medium text-slate-400">
+            Outubro 2025 • Relatório de Perdas
+          </div>
+        </div>
+
+        {/* Slide Content Area */}
+        <div className="flex-1 relative overflow-hidden bg-slate-50/50">
+          {/* Background Element */}
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
+          
+          {/* Render Current Slide */}
+          <div className="h-full w-full p-2">
+            {slides[currentSlide]}
+          </div>
+        </div>
+
+        {/* Footer / Controls */}
+        <div className="h-16 bg-white border-t border-slate-100 flex items-center justify-between px-8 z-20">
+          <div className="flex gap-1">
+            {slides.map((_, idx) => (
+              <div 
+                key={idx} 
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  currentSlide === idx ? 'w-8 bg-[#EE4D2D]' : 'w-2 bg-slate-200'
+                }`}
+              />
+            ))}
+          </div>
+
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-slate-400 font-medium">
+              {currentSlide + 1} / {slides.length}
+            </span>
+            <div className="flex gap-2">
+              <button 
+                onClick={prevSlide}
+                disabled={currentSlide === 0}
+                className="p-2 rounded-full hover:bg-slate-100 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <button 
+                onClick={nextSlide}
+                disabled={currentSlide === slides.length - 1}
+                className="p-2 rounded-full bg-[#EE4D2D] text-white hover:bg-[#d03e1f] shadow-md shadow-orange-200 disabled:opacity-50 disabled:bg-slate-300 disabled:shadow-none transition-all"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      
       <style>{`
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fadeIn { animation: fadeIn 0.8s ease-out forwards; }
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
-        @keyframes blob { 0% { transform: translate(0px, 0px) scale(1); } 33% { transform: translate(10px, -10px) scale(1.1); } 66% { transform: translate(-10px, 10px) scale(0.9); } 100% { transform: translate(0px, 0px) scale(1); } }
-        .animate-blob { animation: blob 7s infinite; }
-        @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
-        .animate-pulse-slow { animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.8s ease-out forwards;
+        }
+        .animate-slideUp {
+          animation: slideUp 0.6s ease-out forwards;
+        }
       `}</style>
     </div>
   );
-};
-
-// --- APP PRINCIPAL (CONTROLE) ---
-export default function App() {
-  const [view, setView] = useState('dashboard'); // 'dashboard' ou 'presentation'
-  const [selectedData, setSelectedData] = useState(null);
-
-  const handleSelectMonth = (monthKey) => {
-    // Só abre se tiver dados (kpis.bruto > 0)
-    if (DATABASE[monthKey].kpis.bruto > 0) {
-      setSelectedData(DATABASE[monthKey]);
-      setView('presentation');
-    }
-  };
-
-  const handleBack = () => {
-    setView('dashboard');
-    setSelectedData(null);
-  };
-
-  if (view === 'dashboard') {
-    return <DashboardMenu onSelectMonth={handleSelectMonth} />;
-  }
-
-  return <Presentation data={selectedData} onBack={handleBack} />;
 }
